@@ -1,0 +1,34 @@
+import os
+
+env = Environment();
+
+
+targetName = 'server.fcgi'
+
+cppPath = [
+	'./'
+]
+
+libPath = [
+	'/usr/local/lib'
+]
+
+libs = [
+	'fcgi'
+]
+
+env.Append( CPPPATH = cppPath );
+env.Append( LIBPATH = libPath );
+env.Append( LIBS = libs );
+
+sourceFiles = [];
+sourceDirs = [ './' ];
+
+for dir in sourceDirs:
+	for suffix in [ '.c', '.cpp', '.C', '.cxx', 'c++' ]:
+		sourceFiles += Glob( os.path.join( dir, '*' + suffix ), source=True );
+
+# Debug
+#print( 'Source files: {0}'.format( sourceFiles ) );
+
+artifact = env.Program( targetName, sourceFiles );

@@ -1,0 +1,9 @@
+E-01: 编译 fcgi app 时出现 
+		/tmp/cct8bPYJ.o: In function `main':
+		server.cpp:(.text+0x23): undefined reference to `FCGI_printf'
+		server.cpp:(.text+0x3d): undefined reference to `FCGI_printf'
+		server.cpp:(.text+0x42): undefined reference to `FCGI_Accept'
+		collect2: error: ld returned 1 exit status
+
+	解决：请确保源文件的位置在 ‘动态库’ 的前面
+		  --(如: g++ -o server.fcgi server.cpp -L /usr/local/include/ -L /usr/local/lib/ -lfcgi)
