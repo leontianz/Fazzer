@@ -1,0 +1,52 @@
+import os
+Import( 'env' )
+
+localEnv = env.Clone();
+
+localEnv.VariantDir( 'application', localEnv['SOURCE_DIR'], duplicate = 0 )
+
+targetName = 'server.fcgi'
+
+cppPath = [
+
+]
+
+libPath = [
+	'/usr/local/lib'
+]
+
+libs = [
+	'fcgi'
+]
+
+localEnv.Append( CPPPATH = cppPath );
+localEnv.Append( LIBPATH = libPath );
+localEnv.Append( LIBS = libs );
+
+sourceFiles = [];
+      
+srcRoot = Dir( 'application' ).srcnode().abspath + os.path.sep
+
+# Debug
+#print( "The virtual source dir: {0}\nThe BUILD_DIR: {1}".format( srcRoot, localEnv['BUILD_DIR'] ) )
+
+# Find all the source files to build.
+for root, dirs, files in os.walk( os.path.join( srcRoot ) ):
+   
+   # Debug
+   #print( "\nroot: {0}\ndirs: {1}\nfiles: {2}\n".format( root, dirs, files ) )
+   
+   subDir = 'application/' + root.replace( srcRoot, '' )
+   # Add internal include paths.
+   env.Append( CPPPATH = subDir )
+   for ext in [ '.cpp', '.c', '.C', '.cxx', '.c++', '.cc' ]:
+      sourceFiles += Glob( os.path.join( subDir, '*' + ext ), source = True )
+
+
+# Debug
+#print( 'Source files: {0}'.format( sourceFiles ) );
+
+artifact = localEnv.Program( targetName, sourceFiles );
+
+if 'INSTALL_DIR' in localEnv:   
+   Install( 'sbin', artifact )

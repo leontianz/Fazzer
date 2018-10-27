@@ -1,34 +1,74 @@
 import os
 
-env = Environment();
+# Add the command line oprions.
+AddOption(
+            '--platform',
+            dest = 'platform',
+            action = 'store',
+            default = 'win32',
+            help = 'Specifis the target platform: win32 linux.'
+         )
+         
+AddOption(
+            '--toolchain',
+            dest = 'toolchain',
+            action = 'store',
+            default = '',
+            help = 'Specifis the toolchain path.'
+         )
+         
+AddOption(
+            '--cprefix',
+            dest = 'compilerprefix',
+            action = 'store',
+            default = '',
+            help = 'Specifis the prefix of compilers'
+         )
+         
+         
+# Obtains the arguments from command line.
+PLATFROM = GetOption( 'platform' )
+TOOLCHAIN = GetOption( 'toolchain' )
+COMPILERPEFIX = GetOption( 'compilerprefix' )
 
+# The environment variable.
+env = Environment()
 
-targetName = 'server.fcgi'
+if PLATFROM == 'linux':
+   # Append the toolchain into the PATH environment variable.
+   if TOOLCHAIN != '':
+      envPath = [ '/usr/local/sbin', '/usr/local/bin', '/usr/sbin', '/usr/bin', '/sbin', '/bin' ]
+      env['ENV']['PATH'] = envPath
+      envPath.append( TOOLCHAIN )
+      
+   env.MergeFlags( ['-Werror', '-Wall', '-ggdb'] )
+   
+   # Specifs the compilers
+   if COMPILERPEFIX != '':
+      env['ADDR2LINE'] = COMPILERPEFIX + 'addr2line'
+      env['AR'] = COMPILERPEFIX + 'ar'
+      env['AS'] = COMPILERPEFIX + 'ar'
+      env['CC'] = COMPILERPEFIX + 'gcc'
+      env['CXX'] = COMPILERPEFIX + 'g++'
+      env['SMARTLINK'] = COMPILERPEFIX + 'gcc'
+      env['NM'] = COMPILERPEFIX + 'nm'
+      env['OBJCOPY'] = COMPILERPEFIX + 'objcopy'
+      env['OBJDUMP'] = COMPILERPEFIX + 'objdump'
+      env['RANLIB'] = COMPILERPEFIX + 'ranlib'
+      env['READELF'] = COMPILERPEFIX + 'readelf'
+      env['SIZE'] = COMPILERPEFIX + 'size'
+      env['STRINGS'] = COMPILERPEFIX + 'strings'
+      env['STRIP'] = COMPILERPEFIX + 'strip'
 
-cppPath = [
-	'./'
-]
+   
+# Specifis the build dir and the source dir.
+BUILD_DIR = '.build'
+INSTALL_DIR = BUILD_DIR
+SOURCE_DIR = '#/application'
 
-libPath = [
-	'/usr/local/lib'
-]
+env['BUILD_DIR'] = BUILD_DIR
+env['INSTALL_DIR'] = INSTALL_DIR
+env['SOURCE_DIR'] = SOURCE_DIR
 
-libs = [
-	'fcgi'
-]
-
-env.Append( CPPPATH = cppPath );
-env.Append( LIBPATH = libPath );
-env.Append( LIBS = libs );
-
-sourceFiles = [];
-sourceDirs = [ './' ];
-
-for dir in sourceDirs:
-	for suffix in [ '.c', '.cpp', '.C', '.cxx', 'c++' ]:
-		sourceFiles += Glob( os.path.join( dir, '*' + suffix ), source=True );
-
-# Debug
-#print( 'Source files: {0}'.format( sourceFiles ) );
-
-artifact = env.Program( targetName, sourceFiles );
+SConscript( 'application/SConscript', exports = 'env', variant_dir = BUILD_DIR, duplicate = 0 ) 
+   

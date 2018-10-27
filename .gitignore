@@ -1,0 +1,5 @@
+# Ignores the .build build directory
+webservices/.build/
+
+# ???
+webservices/.sconsign.dblite
