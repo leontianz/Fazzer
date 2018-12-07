@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+# lighttpd     Startup script for the lighttpd server
+#
+# chkconfig: - 85 15
+# description: Lightning fast webserver with light system requirements
+#
+# processname: lighttpd
+# config: /etc/lighttpd/lighttpd.conf
+# config: /etc/sysconfig/lighttpd
+# pidfile: /var/run/lighttpd.pid
+#
+# Note: pidfile is assumed to be created
+# by lighttpd (config: server.pid-file).
+# If not, uncomment 'pidof' line.
+
+if [ -z "$LIGHTTPD_CONF_PATH" ]; then
+	LIGHTTPD_CONF_PATH="/etc/lighttpd/lighttpd.conf"
+fi
+
+PROGRAM="lighttpd"
+PROGRAM_BIN="/usr/local/lighttpd/sbin/lighttpd"
+PID_FILE="/var/run/lighttpd.pid"
+MODXX_LIB_PATH="/usr/local/lighttpd/lib"
+
+RETVAL=0
+
+Start()
+{
+	${PROGRAM_BIN} -f ${LIGHTTPD_CONF_PATH} -m ${MODXX_LIB_PATH}
+ 
+	RETVAL=$?
+ 
+   if [ ${RETVAL} = 0 ];
+   then
+      echo -en "Start ${PROGRAM} successfully...\n"
+   else
+      echo -en "Failed start ${PROGRAM}...\n"
+   fi
+   
+	return $RETVAL
+}
+
+Stop()
+{
+	kill -KILL $(cat ${PID_FILE})
+	
+   RETVAL=$?
+   
+   if [ ${RETVAL} = 0 ];
+   then
+      echo -en "Stop ${PROGRAM} successfully...\n"
+   else
+      echo -en "Failed stop ${PROGRAM}...\n"
+   fi
+	
+   return $RETVAL
+}
+
+Test()
+{
+   ${PROGRAM_BIN} -t -f ${LIGHTTPD_CONF_PATH}
+   
+   RETVAL=$?
+}
+
+Restart()
+{
+	echo -en $"Restarting ${PROGRAM}...\n"
+   Stop
+   Start
+	return $RETVAL
+}
+
+case "$1" in
+	start)
+		Start
+		;;
+	stop)
+		Stop
+		;;
+	restart)
+		Restart
+		;;
+   test)
+      Test
+      ;;
+	status)
+		status ${PROGRAM_BIN}
+		RETVAL=$?
+		;;
+	*)
+		echo -en "Usage: $0 { start | stop | restart | status }\n"
+		RETVAL=1
+esac
+
+exit $RETVAL

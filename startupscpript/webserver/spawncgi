@@ -1,0 +1,72 @@
+#! /bin/sh
+################################################################################
+#
+#  Filename: spawncgi Copyright: 2018 Sencore, Inc.  All rights reserved.
+#
+#  Desc: Invoke the spawncgi program to run up the specifics fcgi app. 
+#
+################################################################################
+
+
+RETVAL=0
+
+SPWAN_CGI_PROGRAM=/usr/local/spawn-fcgi/bin/spawn-fcgi
+FASTCGI_PROGRAM=/home/tianz/fazzer/webservices/.build/sbin/server.fcgi
+FASTCGI_APP_HOST=127.0.0.1
+FASTCGI_APP_PORT=1027
+FASTCGI_APP_PID_FILE=/var/run/webservice.pid
+FASTCGI_APP_USER=tianz
+FASTCGI_APP_GROUP=tianz
+
+start()
+{
+	${SPWAN_CGI_PROGRAM} -f ${FASTCGI_PROGRAM} \
+						 -a ${FASTCGI_APP_HOST} \
+						 -p ${FASTCGI_APP_PORT} \
+						 -P ${FASTCGI_APP_PID_FILE} \
+						 -u ${FASTCGI_APP_USER} \
+						 -g ${FASTCGI_APP_GROUP}
+
+	if [ $? = 0 ];
+	then
+		echo -en "spawn-fcgi: child spawned => ${FASTCGI_APP_HOST}:${FASTCGI_APP_PORT}\n"
+	fi
+
+	RETVAL=$?
+}
+
+stop()
+{
+	kill -KILL $(cat ${FASTCGI_APP_PID_FILE})
+
+	if [ $? = 0 ];
+	then
+		echo -en "Stop ${FASTCGI_PROGRAM} successfully...\n"
+	else
+		echo -en "Failed to stop ${FASTCGI_PROGRAM} !!!\n"
+	fi
+
+	RETVAL=$?
+}
+
+case "$1" in
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+	restart)
+		stop
+		start
+		;;
+
+	*)
+		echo -en "Usage: { start | stop | restart }\n"
+		RETVAL=1
+		;;
+esac
+
+exit ${RETVAL}
